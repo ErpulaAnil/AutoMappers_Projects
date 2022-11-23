@@ -1,0 +1,109 @@
+ create table Tbl_skills(s_id int identity(1,1) primary key,skill_name varchar(50))
+ create table Tbl_departments(d_id int identity(1,1) primary key,department_name varchar(50))
+
+
+ create table Tbl_genders(g_id int identity(1,1) primary key,gender_name varchar(50))
+
+select * from Tbl_genders
+   select * from Tbl_student
+
+
+ create table Tbl_student(std_id int identity(1,1) primary key,
+ stunet_name varchar(50),s_address varchar(50),
+ s_id int foreign key references Tbl_skills(s_id) NOT NULL,
+  d_id int foreign key references Tbl_departments(d_id) NOT NULL,
+ g_id int foreign key references Tbl_genders(g_id) NOT NULL)
+
+ ---------------------------------------proc_GetStuduentData----------------------------------------------
+
+ Alter procedure proc_GetStuduentData
+ as
+ begin
+ select distinct std_id,stunet_name,s_address,tsk.skill_name,ds.department_name, tg.gender_name from Tbl_student ts
+  join Tbl_skills tsk on tsk.s_id=ts.s_id 
+ join Tbl_departments ds on ds.d_id=ts.d_id
+ join Tbl_genders tg on tg.g_id=ts.g_id
+ end
+-- exec proc_GetStuduentData
+ -----------------------------------------------------------
+
+ ---------------------------Select Specific Student------------------------------------
+
+Alter procedure proc_Get_By_Student(@std_id int)
+as begin
+select std_id,stunet_name,s_address,tsk.skill_name,ds.department_name, tg.gender_name from  Tbl_student ts
+            join Tbl_skills tsk on tsk.s_id=ts.s_id 
+           join Tbl_departments ds on ds.d_id=ts.d_id
+          
+		   join Tbl_genders tg on tg.g_id=ts.g_id where ts.std_id=@std_id;
+end
+--------------------------------------------------------------------------------------------
+
+exec proc_Get_By_Student 5
+
+
+-------------------------------------------------Insert Candidate---------------------------------------------------------------
+
+
+create PROCEDURE proc_Student_Insert_new(@stunet_name varchar(50) ,@s_address varchar(50),@skill_name varchar(50),@department_name varchar(50),
+@gender_name varchar(50))
+AS
+BEGIN
+IF NOT EXISTS (select s_id from Tbl_skills where skill_name =@skill_name)
+   BEGIN
+       INSERT INTO Tbl_skills(skill_name)
+       VALUES (@skill_name)
+   END
+IF NOT EXISTS (select d_id from Tbl_departments where department_name =@department_name)
+   BEGIN
+       INSERT INTO Tbl_departments(department_name)
+       VALUES (@department_name)
+   END
+INSERT INTO Tbl_student values(@stunet_name,@s_address,
+ (select s_id from Tbl_skills where skill_name =@skill_name),
+  (select d_id from Tbl_departments where department_name =@department_name),
+  (select g_id from Tbl_genders where gender_name =@gender_name))
+End
+---------------------------------------------------------------------------------------------------------
+
+proc_Student_Insert_new 'Pravin', 'Hyd', 'ECE','Java','Male'
+
+---------------------------------------------------------------------------------------------------------
+
+
+
+
+----------------------------Update Candidate---------------------------------------
+Alter PROCEDURE Update_Student_Data(@std_id int,@stunet_name varchar(50),@s_address varchar(50),
+@skill_name varchar(50),@department_name varchar(50),@gender_name varchar(50))
+AS
+BEGIN
+            UPDATE Tbl_student
+            SET    stunet_name = @stunet_name,
+			   
+                    s_address=@s_address,
+					
+                   s_id =(select s_id from Tbl_skills where  skill_name=@skill_name),
+				   d_id=(select d_id from Tbl_departments where  department_name =@department_name),
+				   g_id=(select g_id from Tbl_genders where gender_name=@gender_name)
+            WHERE  std_id = @std_id
+
+
+
+       END
+--------------------------------------------------------------------------
+Update_Student_Data 5,'pravin r', 'Mumbai' ,'Java','EEE','Male'
+
+-----------------------------------------------------------------------------------------------------
+
+
+-------------------------------Delete Candidate-------------------------------------
+
+Alter PROCEDURE Delete_Student_Data(@std_id int)
+AS
+BEGIN
+DELETE FROM Tbl_student WHERE std_id = @std_id;
+END
+---------------------------------------------------------------------------
+Delete_Student_Data 3
+----------------------------------------------------------------------------
